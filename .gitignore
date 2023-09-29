@@ -1,0 +1,19 @@
+# Configuration
+.env
+.envrc
+
+# IDE
+.idea/**
+.vscode/
+
+# System files
+*.egg-info
+.coverage
+.ipynb_checkpoints
+.DS_Store
+**/__pycache__/
+build/
+dist/
+
+# Data
+**/data/
