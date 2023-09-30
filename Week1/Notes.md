@@ -1,6 +1,6 @@
 # Notes for Week 1
 
-## Setting up PostgreSQL in a Docker container
+## Setting up PostgreSQL in a Docker Container
 
 Run the Docker container. If we don't have the image already, it'll download it from Docker Hub the first time we run this.
 ``` bash
@@ -34,7 +34,7 @@ wc -l ./data/yellow_tripdata_2021-01.csv
 
 > Next, check out [Notes1_2.ipynb](Notes1_2.ipynb) where we read the data using Pandas, get the DDL from the DataFrame and write the data straight to our database from there.
 
-## Using pgAdmin to interface with PostgreSQL
+## Using pgAdmin to Interface with PostgreSQL
 
 pgAdmin is a web-based GUI that we will install in a container. It's much more convenient than using `pgcli`.
 ``` bash
@@ -147,3 +147,17 @@ URL="http://192.168.1.75:8000/data/downloaded_data.parquet"
 ```
 
 > _Note:_ Of course this is very much a toy example. In practice, we would not be doing this whole `docker` with `network` thing. This is all just a proof of concept for local testing. In 'real world' scenarios, `url` would often refer to a database running in the cloud (e.g. BigQuery) and something like a Kubernetes job would replace typing in `docker` commands. We won't be using Kubernetes in this course, but we *are* going to see how to use Prefect and/or Apache Airflow for this later.
+
+## Orchestrating Containers with Docker-Compose
+
+Check out [docker-compose.yaml](docker-compose.yaml) which will make everything much easier going forward. We won't need to specify and run our Docker containers manually and individually or define a network separately anymore. It is basically a way to run multiple related "services" with a single config file.
+
+Run `docker-compose` in "detached mode" with `-d` so that you can continue to interact with the shell without having to open another shell window. If there are multiple configuration files and you'd like to specify which YAML file to use, use the `-f` flag.
+``` bash
+docker-compose up -d
+```
+
+Shut both services down at once gracefully with:
+``` bash
+docker-compose down
+```
