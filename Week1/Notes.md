@@ -161,3 +161,23 @@ Shut both services down at once gracefully with:
 ``` bash
 docker-compose down
 ```
+
+## Introduction to Terraform
+Terraform is an open-source tool by HashiCorp. It is an IaC (Infsrustructure-as-Code) solution which means it lets you provision infrastructure resources (VMs, containers, storage, networking, etc.) with declarative configuration files. This enables you to use version control software to reuse and share configuration and manage your infrastructure in a safe, consistent and repeatable manner, bringing DevOps best practices for change management to your infrastructure. It's great for stack-based deployments and works really well with cloud providers. It also uses a state-based approach to track resource changes throughout deployments.
+
+You specify which version of Terraform to use for `terraform` commands with the `.terraform-version` file. An alternative would be to use the [tfenv](https://github.com/tfutils/tfenv) plugin.
+
+The main required files are `main.tf` and `variables.tf`. The files `resources.tf` and `output.tf` are optional.
+
+### Declarations
+In `main.tf`:
+- `terraform`: Basic Terraform settings
+  - `required_version`: Minimum compatible Terraform version
+  - `backend`: Where to persist Terraform's "state" snapshots which map real-world resources to your configuration; see the [docs](https://developer.hashicorp.com/terraform/language/settings/backends/configuration).
+  - `required_providers`: The [providers](https://registry.terraform.io/browse/providers) required by this module. (Think of this as analogous to an `import` statement in Python.) The [Terraform Registry](https://registry.terraform.io/) is the main  directory of publicly available providers from most major infrastructure platforms.
+- `provider`: [Configures](https://developer.hashicorp.com/terraform/language/providers/configuration) a provider previously declared as required.
+- `resource`: Each [Resource block](https://developer.hashicorp.com/terraform/language/resources/syntax) defines a component of your infrastructure. The specifics depend on the provider and they have fully documented the syntax for each resource (e.g. `google_storage_bucket`, `google_bigquery_dataset`, `google_bigquery_table`, etc.) on Terraform Registry, and of course you can go to each provider's website (e.g. [Google Cloud Storage documentation](https://cloud.google.com/storage/docs)) and look through their SDK and API docs to understand the links between that and Terraform's syntax more deeply.
+
+In `variables.tf`:
+- `locals`:
+- `variable`:
