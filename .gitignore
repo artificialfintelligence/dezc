@@ -1,6 +1,7 @@
 # Configuration
 .env
 .envrc
+**/.terraform/
 
 # IDE
 .idea/**
