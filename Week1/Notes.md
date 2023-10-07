@@ -163,7 +163,7 @@ docker-compose down
 ```
 
 ## Introduction to Terraform
-Terraform is an open-source tool by HashiCorp. It is an IaC (Infsrustructure-as-Code) solution which means it lets you provision infrastructure resources (VMs, containers, storage, networking, etc.) with declarative configuration files. This enables you to use version control software to reuse and share configuration and manage your infrastructure in a safe, consistent and repeatable manner, bringing DevOps best practices for change management to your infrastructure. It's great for stack-based deployments and works really well with cloud providers. It also uses a state-based approach to track resource changes throughout deployments.
+[Terraform](https://developer.hashicorp.com/terraform) is an open-source tool by HashiCorp. It is an IaC (Infsrustructure-as-Code) solution which means it lets you provision infrastructure resources (VMs, containers, storage, networking, etc.) with declarative configuration files. This enables you to use version control software to reuse and share configuration and manage your infrastructure in a safe, consistent and repeatable manner, bringing DevOps best practices for change management to your infrastructure. It's great for stack-based deployments and works really well with cloud providers. It also uses a state-based approach to track resource changes throughout deployments.
 
 You specify which version of Terraform to use for `terraform` commands with the `.terraform-version` file. An alternative would be to use the [tfenv](https://github.com/tfutils/tfenv) plugin.
 
@@ -179,5 +179,28 @@ In `main.tf`:
 - `resource`: Each [Resource block](https://developer.hashicorp.com/terraform/language/resources/syntax) defines a component of your infrastructure. The specifics depend on the provider and they have fully documented the syntax for each resource (e.g. `google_storage_bucket`, `google_bigquery_dataset`, `google_bigquery_table`, etc.) on Terraform Registry, and of course you can go to each provider's website (e.g. [Google Cloud Storage documentation](https://cloud.google.com/storage/docs)) and look through their SDK and API docs to understand the links between that and Terraform's syntax more deeply.
 
 In `variables.tf`:
-- `locals`:
-- `variable`:
+- `locals`: Analogous to "constants" in programming
+- `variable`: "Runtime" variables
+
+### Execution
+
+Initialize the state file (a `.tfstate` file), initialize and configure the backend, install plugins/providers, checkout existing config from version control. These all go in the `.terraform` directory, which this command also creates.
+``` bash
+terraform init
+```
+
+Check changes to new infrastructure plan, match and preview local changes against remote state, and propose an Execution Plan. (Essentially a "dry run")
+``` bash
+terraform plan -var="project=<your-gcp-project-id>"
+```
+
+Create new infrastructure. Asks for approval to the proposed plan, and applies changes in the cloud.
+``` bash
+terraform apply -var="project=<your-gcp-project-id>"
+```
+
+Delete infrastructure after your work is done to avoid costs on any running services. Removes your stack from the cloud.
+``` bash
+terraform destroy
+```
+> Check out this [tutorial on how to get started with Terraform on Google Cloud](https://developer.hashicorp.com/terraform/tutorials/gcp-get-started) for more details and to learn more in depth.
