@@ -204,3 +204,88 @@ Delete infrastructure after your work is done to avoid costs on any running serv
 terraform destroy
 ```
 > Check out this [tutorial on how to get started with Terraform on Google Cloud](https://developer.hashicorp.com/terraform/tutorials/gcp-get-started) for more details and to learn more in depth.
+
+## Setting up the Environment on a Cloud Virtual Machine
+After setting up a new GCP account to take advantage of the "US$300 credits for 3 months" free trial and creating a new project and setting up the necessary Service Accounts under `IAM & Admin`, we:
+- Generated SSH public and private keys using:
+  ``` bash
+  ssh-keygen -t rsa -f ~/.ssh/KEY_FILENAME -C USERNAME -b 2048
+  ```
+  Replacing `KEY_FILENAME` and `USERNAME` with our desired values. We will be asked for an optional passphrase for logging in, which we may leave blank. The keys are locally stored under `~/.ssh/`. Our private key is for our eyes only and we should never store it anywhere publicly. We then add our public key (the contents of the key file with the `.pub` extension) to `Compute Engine` > Settings > Metadata > SSH Keys.
+- Created a new VM instance under `Compute Engine` (after enabling the API, of course, which in turn necessitated setting up a billing account first).
+- Copied the external IP address of our newly-created VM and logged in to it with SSH using:
+  ``` bash
+  ssh -i ~/.ssh/KEY_FILENAME USERNAME@VM_EXTERNAL_IP_ADDRESS
+  ```
+- We configured SSH by modifying the contents of `~/.ssh/config` so that going forward we can simply SSH into our vm with the command:
+  ``` bash
+  ssh de-zoomcamp
+  ```
+  My updated `config` file is in my `dotfiles` repo on GitHub. I will just have to update the IP Address when it changes, or the name of the identity (key) file if I rename it.
+- The VM comes with the Google Cloud SDK pre-installed, which is nice. Next, we downloaded the appropriate version of [Anaconda](https://www.anaconda.com/download#downloads) with `wget` and installed it with the `bash` command. To reload `.bashrc` and have the installation take effect, simply `logout` (or Ctrl+D) and log back in, or alternatively run:
+  ``` bash
+  source ~/.bashrc
+  ```
+- We installed Docker. First we get the latest directory of packages by updating `apt-get`:
+  ``` bash
+  sudo apt-get update
+  ```
+  Then:
+  ``` bash
+  sudo apt-get install docker.io
+  ```
+- We followed [these steps](https://github.com/sindresorhus/guides/blob/main/docker-without-sudo.md) to become able to run Docker without `sudo`:
+  ``` bash
+  sudo groupadd docker \
+  && \
+  sudo gpasswd -a $USER docker
+  ```
+  Log out and back in so that group memberships are re-evaluated. Then:
+  ``` bash
+  sudo service docker restart
+  ```
+- We installed the "Remote - SSH" plugin (by Microsoft) for VS Code so that we can use VS Code with our VM just as though it was our local machine.
+- We cloned our repo in the VM.
+- We downloaded the appropriate version of [docker-compose](https://github.com/docker/compose/releases) from its repo with `wget` into the `~/bin/` folder (which we created) on the VM, named it `docker-compose` and then gave it executable privilege with:
+  ``` bash
+  chmod +x docker-compose
+  ```
+  We also added the `~/bin/` folder to the `PATH` environment variable by adding the following line to the very end of `~/.bashrc`:
+  ``` bash
+  export PATH="${HOME}/bin:${PATH}"
+  ```
+- We installed `pgcli` using `pip`, or if you face any issues (I didn't), `pip uninstall` it and then use `conda` instead:
+  ``` bash
+  conda install -c conda-forge pgcli \
+  && \
+  pip install -U mycli
+  ```
+- We set up port forwarding in VS Code. We performed the following mappings: 5432:5432, 8080:8080 and 8888:8888, which respectively allow us to interact with the running instances of PostgreSQL, pgAdmin and Jupyter Notebooks on the VM from our local machine.
+- We downloaded [Terraform](https://developer.hashicorp.com/terraform/downloads) binaries with `wget` into our `~/bin/` directory. But it was a zip archive file so we first had to:
+  ``` bash
+  sudo apt-get install unzip
+  ```
+  And then `unzip` the downloaded file which contained the already-executable file `terraform`.
+- We uploaded our GCP service account credentials file to the VM using SFTP. First, we `cd` into the folder containing the file and then from within that folder:
+  ``` bash
+  sftp de-zoomcamp
+  ```
+  Then, assuming the credentials file is named `dezc-gcp-creds.json`, inside SFTP we do:
+  ``` bash
+  mkdir .gcp
+  ```
+  ``` bash
+  cd .gcp
+  ```
+  ``` bash
+  put dezc-gcp-creds.json
+  ```
+  And finally, since we cannot use the same method we used on our Mac (OAuth) to authenticate with GCP on a remote host, instead we go:
+  ``` bash
+  export GOOGLE_APPLICATION_CREDENTIALS=~/.gcp/dezc-gcp-creds.json \
+  && \
+  gcloud auth activate-service-account --key-file $GOOGLE_APPLICATION_CREDENTIALS
+  ```
+Now we are ready to run the four Terraform commands discussed in the previous section to set up our `Cloud Storage` bucket and `BigQuery` dataset (elsewhere known as "schema") in the cloud. These two pieces constitute our data lake and data warehouse, respectively. We can also spin up our Docker containers in our VM and interact with the instance remotely through our browser, shell and VS Code, as we saw earlier.
+
+Always stop the VM instance when not in use to avoid incurring charges. Allegedly, even after we've stopped an instance, we can incur charges for resources such as storage. But deleting it means we'll have to set everything up from scratch next time we need it. There is also a "suspend" option that I haven't had a chance to look into, but it might be a best-of-both-worlds option.
