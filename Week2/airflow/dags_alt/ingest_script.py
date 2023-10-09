@@ -1,15 +1,11 @@
-import os
-
 from time import time
 
 import pandas as pd
 from sqlalchemy import create_engine
 
 
-def ingest_callable(
-    user, password, host, port, db, table_name, csv_file, execution_date
-):
-    print(table_name, csv_file, execution_date)
+def ingest_callable(user, password, host, port, db, table_name, csv_file):
+    print(f"Attempting to ingest data from {csv_file} into {table_name}...")
 
     engine = create_engine(f"postgresql://{user}:{password}@{host}:{port}/{db}")
     engine.connect()
@@ -29,7 +25,7 @@ def ingest_callable(
     df.to_sql(name=table_name, con=engine, if_exists="append")
 
     t_end = time()
-    print("Inserted the first chunk, took %.3f second" % (t_end - t_start))
+    print("Inserted the first chunk, took %.3f seconds" % (t_end - t_start))
 
     while True:
         t_start = time()
@@ -47,4 +43,4 @@ def ingest_callable(
 
         t_end = time()
 
-        print("Inserted another chunk, took %.3f second" % (t_end - t_start))
+        print("Inserted another chunk, took %.3f seconds" % (t_end - t_start))

@@ -24,7 +24,7 @@ local_workflow = DAG(
     "LocalIngestionDag",
     schedule_interval="0 6 2 * *",
     start_date=datetime(2021, 1, 1),
-    end_date=datetime(2021, 8, 1),
+    # end_date=datetime(2021, 2, 1),
 )
 
 
@@ -32,15 +32,16 @@ URL_PREFIX = (
     "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/"
 )
 URL_TEMPLATE = (
-    URL_PREFIX + "yellow_tripdata_{{ execution_date.strftime('%Y-%m') }}.csv.gz"
+    URL_PREFIX
+    + "yellow_tripdata_{{ data_interval_start.strftime('%Y-%m') }}.csv.gz"
 )
 DOWNLOADED_FILENAME_TEMPLATE = (
-    AIRFLOW_HOME + "data_{{ execution_date.strftime('%Y-%m') }}.csv.gz"
+    AIRFLOW_HOME + "data_{{ data_interval_start.strftime('%Y-%m') }}.csv.gz"
 )
-TABLE_NAME_TEMPLATE = "yellow_taxi_{{ execution_date.strftime('%Y_%m') }}"
+TABLE_NAME_TEMPLATE = "yellow_taxi_{{ data_interval_start.strftime('%Y_%m') }}"
 
 with local_workflow:
-    wget_task = BashOperator(
+    download_task = BashOperator(
         task_id="download",
         bash_command=f"curl -sSL {URL_TEMPLATE} > {DOWNLOADED_FILENAME_TEMPLATE}",
     )
@@ -59,4 +60,4 @@ with local_workflow:
         ),
     )
 
-    wget_task >> ingest_task
+    download_task >> ingest_task

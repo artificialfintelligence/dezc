@@ -2,13 +2,13 @@
 
 FROM apache/airflow:latest
 
-ENV AIRFLOW_HOME=/opt/airflow
+ENV AIRFLOW_HOME=/opt/airflow/
 
 USER root
 RUN apt-get update -qq && apt-get install vim -qqq
 # git gcc g++ -qqq
 
-USER airflow
+USER $AIRFLOW_UID
 COPY requirements.txt .
 RUN pip install --upgrade pip
 RUN pip install --no-cache-dir -r requirements.txt
