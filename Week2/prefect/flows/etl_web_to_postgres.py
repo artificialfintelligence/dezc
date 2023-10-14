@@ -9,6 +9,7 @@ from time import time
 
 import pandas as pd
 from prefect.tasks import task_input_hash
+from prefect_sqlalchemy import SqlAlchemyConnector
 from sqlalchemy import create_engine
 
 from prefect import flow, task
@@ -52,35 +53,36 @@ def remove_no_passenger_rides(df):
 
 
 @task(log_prints=True, retries=2)
-def ingest_data(df, user, password, host, port, db, table_name):
-    postgres_url = f"postgresql://{user}:{password}@{host}:{port}/{db}"
-    engine = create_engine(postgres_url)
+def ingest_data(df, table_name):
+    connection_block = SqlAlchemyConnector.load("dezc-sqlalchemy-conn-block")
+    with connection_block.get_connection(begin=False) as engine:
+        df.head(n=0).to_sql(name=table_name, con=engine, if_exists="replace")
 
-    df.head(n=0).to_sql(name=table_name, con=engine, if_exists="replace")
+        print("Created schema. Commencing data loading into Postgres. This'll take a while...")
 
-    print("Created schema. Commencing data loading into Postgres. This'll take a while...")
+        t_start = time()
+        df.to_sql(name=table_name, con=engine, if_exists="append")
+        t_end = time()
 
-    t_start = time()
-    df.to_sql(name=table_name, con=engine, if_exists="append")
-    t_end = time()
+        print("Finishied inserting all data. Took %.3f seconds." % (t_end - t_start))
 
-    print("Finishied inserting all data. Took %.3f seconds." % (t_end - t_start))
+
+@flow(name="Sub-flow", log_prints=True)
+def log_subflow(table_name: str):
+    # Doesn't really do anything. Just wanted to show subflows
+    print(f"Logging sub-flow for {table_name}")
 
 
 @flow(name="Ingest Flow")
-def main_flow():
-    user = "root"
-    password = "root"
-    host = "localhost"
-    port = "5432"
-    db = "ny_taxi"
-    table_name = "yellow_taxi_trips"
+def main_flow(table_name: str):
     csv_url = "https://github.com/DataTalksClub/nyc-tlc-data/releases/download/yellow/yellow_tripdata_2021-01.csv.gz"
+
+    log_subflow(table_name)
 
     raw_data = download_and_read_data(csv_url)
     data = remove_no_passenger_rides(raw_data)
-    ingest_data(data, user, password, host, port, db, table_name)
+    ingest_data(data, table_name)
 
 
 if __name__ == "__main__":
-    main_flow()
+    main_flow("yellow_taxi_data")
