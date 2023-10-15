@@ -3,16 +3,18 @@ from datetime import timedelta
 from pathlib import Path
 
 import pandas as pd
-from prefect.tasks import task_input_hash
 from prefect_gcp.cloud_storage import GcsBucket
 
 from prefect import flow, task
+from prefect.tasks import task_input_hash
 
 DEFAULT_DATA_DIR = Path(Path(__file__).parent.parent.parent, "data")
 DATA_DIR = os.environ.get("DATA_DIR", default=DEFAULT_DATA_DIR)
 
 
-@task(retries=2, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1))
+@task(
+    retries=2, cache_key_fn=task_input_hash, cache_expiration=timedelta(days=1)
+)
 def fetch(dataset_url: str) -> pd.DataFrame:
     """Read taxi data from web into Pandas DataFrame"""
     df = pd.read_csv(dataset_url)
@@ -49,7 +51,9 @@ def write_to_gcs(in_file_path: Path) -> None:
     color = in_file_path.parent.name
     filename = in_file_path.name
     gcs_bucket_block = GcsBucket.load("dezc-gcs-bucket-block")
-    gcs_bucket_block.upload_from_path(from_path=in_file_path, to_path=f"data/{color}/{filename}")
+    gcs_bucket_block.upload_from_path(
+        from_path=in_file_path, to_path=f"data/{color}/{filename}"
+    )
 
 
 @flow()
@@ -64,7 +68,7 @@ def etl_web_to_gcs(color: str, year: int, month: int) -> None:
     write_to_gcs(parquet_file_path)
 
 
-@flow()
+@flow(log_prints=True)
 def etl_web_to_gcs_super(color: str, year: int, months: list[int]):
     for month in months:
         etl_web_to_gcs(color, year, month)
