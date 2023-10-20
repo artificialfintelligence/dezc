@@ -3,15 +3,27 @@
 ###
 name: Parameterized ETL
 description: null
-version: 2df0aa6edc86831f1c2d6d5a1c0bd726
+version: a6016964f9881defbfb7c21990da011c
 # The work queue that will handle this deployment's runs
 work_queue_name: default
-work_pool_name: null
+work_pool_name: default-agent-pool
 tags: []
-parameters: {"color": "yellow", "year": 2021, "months": [1, 2, 3]}
+parameters:
+  color: yellow
+  year: 2021
+  months:
+  - 1
+  - 2
+  - 3
 schedule: null
-is_schedule_active: null
+is_schedule_active: true
 infra_overrides: {}
+
+###
+### DO NOT EDIT BELOW THIS LINE
+###
+flow_name: etl-web-to-gcs-super
+manifest_path: null
 infrastructure:
   type: process
   env: {}
@@ -20,14 +32,11 @@ infrastructure:
   command: null
   stream_output: true
   working_dir: null
+  _block_document_id: b29ebe80-94aa-4883-b959-7b5b3dc58e73
+  _block_document_name: anonymous-32451b8b-1fed-4caf-8515-0694504b7403
+  _is_anonymous: true
   block_type_slug: process
   _block_type_slug: process
-
-###
-### DO NOT EDIT BELOW THIS LINE
-###
-flow_name: etl-web-to-gcs-super
-manifest_path: null
 storage: null
 path: /Users/fafa/code/artificialfintelligence/dezc/Week2/prefect
 entrypoint: flows/etl_web_to_gcs_parameterized.py:etl_web_to_gcs_super
@@ -54,5 +63,5 @@ parameter_openapi_schema:
   - year
   - months
   definitions: null
-timestamp: '2023-10-14T22:00:36.756775+00:00'
+timestamp: '2023-10-20T03:13:11.353659+00:00'
 triggers: []
