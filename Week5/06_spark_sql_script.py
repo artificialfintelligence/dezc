@@ -22,7 +22,7 @@ output = args.output
 
 
 spark = SparkSession.builder \
-    .appName("test") \
+    .appName("NYTaxi") \
     .getOrCreate()
 
 df_green = spark.read.parquet(input_green)
