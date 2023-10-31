@@ -37,3 +37,34 @@ gcloud dataproc jobs submit pyspark \
 ```
 
 So now you can imagine that we could use a bash Operator in Airflow to do exactly what we've done here, changing the paramaters as needed. Technically we could also use `spark-submit' and specify the master, but this way is just a tad simpler.
+
+## Spark to BigQuery
+
+See the official guide [here](https://cloud.google.com/dataproc/docs/tutorials/bigquery-connector-spark-example#pyspark).
+Our modified script is [10_spark_sql_script.py](10_spark_sql_script.py).
+Note that after creating our Spark session, we had to specify the name of the 'temporary' bucket that Dataroc has created on GS when we created the cluster:
+``` python
+spark.conf.set('temporaryGcsBucket', 'dataproc-temp-us-west1-96387081631-qar5wfoe')
+```
+
+Also note how the last line of code has changed to:
+``` python
+df_result.write.format('bigquery') \
+    .option('table', output) \
+    .save()
+```
+
+Now upload the new script to GCS using `gsutil` as before. (See the beginning of these notes.) And run it from the CLI with:
+
+``` bash
+gcloud dataproc jobs submit pyspark \
+    --cluster=dezc-cluster \
+    --region=us-west1 \
+    gs://dezc-data-lake_brilliant-vent-400717/code/10_spark_sql_script_bq.py \
+    -- \
+        --input_green=gs://dezc-data-lake_brilliant-vent-400717/pq/green/2020/*/ \
+        --input_yellow=gs://dezc-data-lake_brilliant-vent-400717/pq/yellow/2020/*/ \
+        --output=ny_taxi_trips_data_all.report-2020
+```
+
+And voilà! Just like that the data has been uploaded to a new BigQuery table (that did not exist) named `report-2020` under the schema `ny_taxi_trips_data_all`.
