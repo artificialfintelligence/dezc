@@ -22,6 +22,10 @@ output = args.output
 
 spark = SparkSession.builder.appName("NYTaxi").getOrCreate()
 
+spark.conf.set(
+    "temporaryGcsBucket", "dataproc-temp-us-west1-96387081631-qar5wfoe"
+)
+
 df_green = spark.read.parquet(input_green)
 
 df_green = df_green.withColumnRenamed(
